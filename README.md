@@ -11,24 +11,24 @@
 
 ## Шаги
 
-   1. Клонирование репозитория:
+   1. Клонирование репозитория:    
 
-   ```
+```
 git clone https://github.com/ваш_пользователь/ваш_репозиторий.git
 cd ваш_репозиторий
-   ```
-   2. Редактирование файла инвентаря Ansible:
+```
+   2. Редактирование файла инвентаря Ansible:    
 
-    - Отредактируйте файл inventory/hosts.yml, добавив IP-адрес вашего сервера.
+     - Отредактируйте файл inventory/hosts.yml, добавив IP-адрес вашего сервера.
 
    3. Запуск Ansible Playbook:
 
     - Запустите Ansible Playbook для установки Docker и Docker Compose, а также развертывания WordPress и Zabbix.
 
-    ```
+```
+ansible-playbook -i inventory.ini deployment.yml
+```    
 
-        ansible-playbook -i inventory.ini deployment.yml
-    ```
     4. Доступ к WordPress:
        -  После успешного выполнения Ansible Playbook, WordPress будет доступен по адресу: http://ваш_сервер:8085. Используйте учетные данные:
             Username: admin    
