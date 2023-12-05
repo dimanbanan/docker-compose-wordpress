@@ -1,0 +1,51 @@
+---
+- name: Deployment mini cluster for creating wordpress site and zabbix monitoring
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Install docker dependences
+      ansible.builtin.apt: >
+        name={{ item }}
+        state=present
+        update_cache=yes
+      with_items:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg
+        - software-properties-common
+      
+    - name: Add Docker's official GPG key
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Get docker repo
+      ansible.builtin.apt_repository: 
+        repo: deb https://download.docker.com/linux/ubuntu bionic stable
+        state: present
+
+    - name: Update cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install docker
+      ansible.builtin.apt: >
+        name={{ item }}
+        state=present
+        update_cache=yes
+      with_items:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - docker-buildx-plugin
+        - docker-compose-plugin
+
+    - name: Copy docker-compose.yml
+      ansible.builtin.copy:
+        src: ./docker-compose.yml
+        dest: /home/ubuntu/docker-compose.yml    
+
+    - name: Deployment cluster
+      ansible.builtin.command: docker compose -f /home/ubuntu/docker-compose.yml up -d

@@ -1,0 +1,109 @@
+version: '3'
+services:
+  mysql-zbx-server:
+    image: mysql:latest
+    container_name: mysql-zbx-server
+    hostname: mysql-zbx-server
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: zabbix
+      MYSQL_ROOT_PASSWORD: root
+    restart: always
+    volumes:
+      - zbx_database_data:/var/lib/mysql
+
+  zabbix-server:
+    image: zabbix/zabbix-server-mysql:latest
+    container_name: zabbix-server
+    hostname: zabbix-server
+    depends_on:
+    - mysql-zbx-server
+    ports:
+      - 10051:10051
+    environment:
+      DB_SERVER_HOST: mysql-zbx-server
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: zabbix
+      MYSQL_ROOT_PASSWORD: root
+
+  zabbix-web:
+    image: zabbix/zabbix-web-apache-mysql:latest
+    container_name: zabbix-web
+    depends_on:
+    - mysql-zbx-server
+    ports:
+      - 8081:8080
+    environment:
+      DB_SERVER_HOST: mysql-zbx-server
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      ZBX_SERVER_HOST: zabbix-server
+      ZBX_SERVER_NAME: zabbix-server
+      PHP_TZ: "Europe/Moscow"
+
+  wordpress-database:
+    image: mysql:latest
+    container_name: wordpress-database
+    hostname: wordpress-database
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+      MYSQL_ROOT_PASSWORD: root
+    restart: always
+    volumes:
+      - wp_database_data:/var/lib/mysql
+
+  wordpress:
+    image: wordpress
+    container_name: wordpress
+    hostname: wordpress
+    ports:
+      - 8085:80
+    depends_on:
+      - wordpress-database
+    environment:
+      WORDPRESS_DB_HOST: wordpress-database
+      WORDPRESS_DB_USER: admin
+      WORDPRESS_DB_PASSWORD: admin
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - ./wordpress:/var/www/html
+
+  wordpress-zbx-agent:
+    image: zabbix/zabbix-agent
+    container_name: wordpress-zbx-agent
+    depends_on:
+      - wordpress
+    environment:
+      ZBX_HOSTNAME: wordpress
+      ZBX_SERVER_HOST: zabbix-server
+    init: true
+
+  wordpress-db-agent:
+    image: zabbix/zabbix-agent
+    container_name: wordpress-db-agent
+    depends_on:
+      - wordpress-database
+    environment:
+      ZBX_HOSTNAME: wordpress-database
+      ZBX_SERVER_HOST: zabbix-server
+    init: true
+
+  zbx-server-agent:
+    image: zabbix/zabbix-agent
+    container_name: zbx-server-agent
+    depends_on:
+      - zabbix-server
+    environment:
+      ZBX_HOSTNAME: zabbix-server
+      ZBX_SERVER_HOST: zabbix-server
+    init: true
+
+volumes:
+  wp_database_data: {}
+  zbx_database_data: {}

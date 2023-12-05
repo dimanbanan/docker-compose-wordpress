@@ -1,1 +1,1 @@
-# docker-compose-wordpress
+# docker-compose-wp-zbx
